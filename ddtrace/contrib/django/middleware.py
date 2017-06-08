@@ -8,6 +8,7 @@ from ...contrib import func_name
 
 # 3p
 from django.core.exceptions import MiddlewareNotUsed
+from django.conf import settings as django_settings
 
 try:
     from django.utils.deprecation import MiddlewareMixin
@@ -16,6 +17,14 @@ except ImportError:
     MiddlewareClass = object
 
 log = logging.getLogger(__name__)
+
+def insert_exception_middleware():
+    exc_mdw = 'ddtrace.contrib.django.TraceExceptionMiddleware'
+    mdw_attrs = ['MIDDLEWARE', 'MIDDLEWARE_CLASSES']
+    for mdw_attr in mdw_attrs:
+        mdw = getattr(django_settings, mdw_attr, None)
+        if mdw and exc_mdw not in set(mdw):
+            setattr(django_settings, mdw_attr, mdw + type(mdw)((exc_mdw,)))
 
 
 class TraceExceptionMiddleware(MiddlewareClass):
