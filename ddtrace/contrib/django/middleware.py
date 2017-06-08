@@ -27,9 +27,9 @@ def insert_exception_middleware():
             setattr(django_settings, mdw_attr, mdw + type(mdw)((exc_mdw,)))
 
 
-class TraceExceptionMiddleware(MiddlewareClass):
+class InstrumentationMixin(MiddlewareClass):
     """
-    Middleware that traces exceptions raised
+    Useful mixin base class for tracing middlewares
     """
     def __init__(self, get_response=None):
         # disable the middleware if the tracer is not enabled
@@ -38,6 +38,11 @@ class TraceExceptionMiddleware(MiddlewareClass):
         if not settings.AUTO_INSTRUMENT:
             raise MiddlewareNotUsed
 
+
+class TraceExceptionMiddleware(InstrumentationMixin):
+    """
+    Middleware that traces exceptions raised
+    """
     def process_exception(self, request, exception):
         try:
             span = _get_req_span(request)
@@ -52,16 +57,8 @@ class TraceMiddleware(MiddlewareClass):
     """
     Middleware that traces Django requests
     """
-    def __init__(self, get_response=None):
-        # disable the middleware if the tracer is not enabled
-        # or if the auto instrumentation is disabled
-        self.get_response = get_response
-        if not settings.AUTO_INSTRUMENT:
-            raise MiddlewareNotUsed
-
     def process_request(self, request):
         tracer = settings.TRACER
-
         try:
             span = tracer.trace(
                 'django.request',
@@ -92,15 +89,6 @@ class TraceMiddleware(MiddlewareClass):
             log.debug("error tracing request", exc_info=True)
         finally:
             return response
-
-    def process_exception(self, request, exception):
-        try:
-            span = _get_req_span(request)
-            if span:
-                span.set_tag(http.STATUS_CODE, '500')
-                span.set_traceback() # will set the exception info
-        except Exception:
-            log.debug("error processing exception", exc_info=True)
 
 
 def _get_req_span(request):
