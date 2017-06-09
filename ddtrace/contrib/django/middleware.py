@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 def insert_exception_middleware():
     exception_middleware = 'ddtrace.contrib.django.TraceExceptionMiddleware'
     middleware_attributes = ['MIDDLEWARE', 'MIDDLEWARE_CLASSES']
-    for attribute in middleware_attributes:
+    for middleware_attribute in middleware_attributes:
         middleware = getattr(django_settings, middleware_attribute, None)
         if middleware and exception_middleware not in set(middleware):
             setattr(django_settings, middleware_attribute, middleware + type(middleware)((exception_middleware,)))
