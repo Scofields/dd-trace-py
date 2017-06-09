@@ -19,12 +19,12 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 def insert_exception_middleware():
-    exc_mdw = 'ddtrace.contrib.django.TraceExceptionMiddleware'
-    mdw_attrs = ['MIDDLEWARE', 'MIDDLEWARE_CLASSES']
-    for mdw_attr in mdw_attrs:
-        mdw = getattr(django_settings, mdw_attr, None)
-        if mdw and exc_mdw not in set(mdw):
-            setattr(django_settings, mdw_attr, mdw + type(mdw)((exc_mdw,)))
+    exception_middleware = 'ddtrace.contrib.django.TraceExceptionMiddleware'
+    middleware_attributes = ['MIDDLEWARE', 'MIDDLEWARE_CLASSES']
+    for attribute in middleware_attributes:
+        middleware = getattr(django_settings, middleware_attribute, None)
+        if middleware and exception_middleware not in set(middleware):
+            setattr(django_settings, middleware_attribute, middleware + type(middleware)((exception_middleware,)))
 
 
 class InstrumentationMixin(MiddlewareClass):
